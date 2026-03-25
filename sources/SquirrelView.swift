@@ -233,7 +233,7 @@ final class SquirrelView: NSView {
       }
     }
     let panelLayer = shapeFromPath(path: backPath)
-    panelLayer.fillColor = theme.backgroundColor.cgColor
+    panelLayer.fillColor = (theme.usesSystemGlass ? NSColor.clear : theme.backgroundColor).cgColor
     let panelLayerMask = shapeFromPath(path: backgroundPath)
     panelLayer.mask = panelLayerMask
     self.layer?.addSublayer(panelLayer)
@@ -752,14 +752,14 @@ private extension SquirrelView {
     if canPageDown {
       var downTransform = CGAffineTransform(translationX: 0.5 * theme.pagingOffset, y: 2 * height / 3 + preeditHeight)
       let downLayer = shapeFromPath(path: trianglePath.copy(using: &downTransform))
-      downLayer.fillColor = theme.backgroundColor.cgColor
+      downLayer.fillColor = (theme.usesSystemGlass ? (theme.highlightedBackColor ?? theme.backgroundColor) : theme.backgroundColor).cgColor
       downPath = trianglePath.copy(using: &downTransform)
       layer.addSublayer(downLayer)
     }
     if canPageUp {
       var upTransform = CGAffineTransform(rotationAngle: .pi).translatedBy(x: -0.5 * theme.pagingOffset, y: -height / 3 - preeditHeight)
       let upLayer = shapeFromPath(path: trianglePath.copy(using: &upTransform))
-      upLayer.fillColor = theme.backgroundColor.cgColor
+      upLayer.fillColor = (theme.usesSystemGlass ? (theme.highlightedBackColor ?? theme.backgroundColor) : theme.backgroundColor).cgColor
       upPath = trianglePath.copy(using: &upTransform)
       layer.addSublayer(upLayer)
     }

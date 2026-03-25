@@ -9,7 +9,8 @@ import AppKit
 
 final class SquirrelPanel: NSPanel {
   private let view: SquirrelView
-  private let back: NSVisualEffectView
+  private let back: NSView
+  private let panelContent: NSView
   var inputController: SquirrelInputController?
 
   var position: NSRect
@@ -36,21 +37,38 @@ final class SquirrelPanel: NSPanel {
   init(position: NSRect) {
     self.position = position
     self.view = SquirrelView(frame: position)
-    self.back = NSVisualEffectView()
+    self.panelContent = NSView(frame: position)
+    if #available(macOS 26.0, *) {
+      self.back = NSGlassEffectView()
+    } else {
+      self.back = NSVisualEffectView()
+    }
     super.init(contentRect: position, styleMask: .nonactivatingPanel, backing: .buffered, defer: true)
     self.level = .init(Int(CGShieldingWindowLevel()))
     self.hasShadow = true
     self.isOpaque = false
     self.backgroundColor = .clear
-    back.blendingMode = .behindWindow
-    back.material = .hudWindow
-    back.state = .active
+
+    if let back = back as? NSVisualEffectView {
+      back.blendingMode = .behindWindow
+      back.material = .hudWindow
+      back.state = .active
+    } else if #available(macOS 26.0, *), let back = back as? NSGlassEffectView {
+      back.style = .regular
+      back.tintColor = nil
+    }
+
     back.wantsLayer = true
     back.layer?.mask = view.shape
+    panelContent.addSubview(view)
+    panelContent.addSubview(view.textView)
     let contentView = NSView()
     contentView.addSubview(back)
-    contentView.addSubview(view)
-    contentView.addSubview(view.textView)
+    if #available(macOS 26.0, *), let back = back as? NSGlassEffectView {
+      back.contentView = panelContent
+    } else {
+      contentView.addSubview(panelContent)
+    }
     self.contentView = contentView
   }
 
@@ -65,6 +83,10 @@ final class SquirrelPanel: NSPanel {
   }
   var inlineCandidate: Bool {
     view.currentTheme.inlineCandidate
+  }
+
+  private var visualBack: NSVisualEffectView? {
+    back as? NSVisualEffectView
   }
 
   // swiftlint:disable:next cyclomatic_complexity
@@ -432,8 +454,9 @@ private extension SquirrelPanel {
     view.textView.boundsRotation = 0
     view.textView.setBoundsOrigin(.zero)
 
-    view.frame = contentView!.bounds
-    view.textView.frame = contentView!.bounds
+    panelContent.frame = contentView!.bounds
+    view.frame = panelContent.bounds
+    view.textView.frame = panelContent.bounds
     view.textView.frame.size.width -= theme.pagingOffset
     view.textView.frame.origin.x += theme.pagingOffset
     view.textView.textContainerInset = theme.edgeInset
@@ -441,7 +464,12 @@ private extension SquirrelPanel {
     if theme.translucency {
       back.frame = contentView!.bounds
       back.frame.size.width += theme.pagingOffset
-      back.appearance = NSApp.effectiveAppearance
+      visualBack?.appearance = NSApp.effectiveAppearance
+      if #available(macOS 26.0, *), theme.usesSystemGlass, let back = back as? NSGlassEffectView {
+        back.style = .regular
+        back.cornerRadius = max(theme.cornerRadius, theme.hilitedCornerRadius)
+        back.tintColor = nil
+      }
       back.isHidden = false
     } else {
       back.isHidden = true
