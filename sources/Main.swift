@@ -15,9 +15,15 @@ struct SquirrelApp {
   } else {
     try! FileManager.default.url(for: .libraryDirectory, in: .userDomainMask, appropriateFor: nil, create: false).appendingPathComponent("Rime", isDirectory: true)
   }
-  static let appDir = "/Library/Input Library/Squirrel.app".withCString { dir in
-    URL(fileURLWithFileSystemRepresentation: dir, isDirectory: false, relativeTo: nil)
-  }
+  static let appDir: URL = {
+    let bundleURL = Bundle.main.bundleURL
+    if bundleURL.pathExtension == "app" {
+      return bundleURL
+    }
+    return "/Library/Input Methods/Squirrel.app".withCString { dir in
+      URL(fileURLWithFileSystemRepresentation: dir, isDirectory: true, relativeTo: nil)
+    }
+  }()
   static let logDir = FileManager.default.temporaryDirectory.appending(component: "rime.squirrel", directoryHint: .isDirectory)
 
   // swiftlint:disable:next cyclomatic_complexity
