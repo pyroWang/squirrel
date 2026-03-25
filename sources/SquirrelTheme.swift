@@ -61,6 +61,7 @@ final class SquirrelTheme {
 
   private(set) var translucency = false
   private(set) var usesSystemGlass = false
+  private(set) var glassDark = false
   private(set) var mutualExclusive = false
   private(set) var linear = false
   private(set) var vertical = false
@@ -287,6 +288,7 @@ final class SquirrelTheme {
 
     if #available(macOS 26.0, *), translucency {
       usesSystemGlass = true
+      glassDark = dark
 
       // Let NSGlassEffectView provide the panel material. Keeping the old
       // painted background layers would make the panel look muddy.
@@ -300,8 +302,22 @@ final class SquirrelTheme {
       let overlayColor = dark
         ? NSColor.white.withAlphaComponent(0.14)
         : NSColor.black.withAlphaComponent(0.08)
+      let primaryTextColor = dark
+        ? NSColor.white.withAlphaComponent(0.96)
+        : NSColor.black.withAlphaComponent(0.92)
+      let secondaryTextColor = dark
+        ? NSColor.white.withAlphaComponent(0.70)
+        : NSColor.black.withAlphaComponent(0.58)
       highlightedPreeditColor = overlayColor
       highlightedBackColor = overlayColor
+      textColor = primaryTextColor
+      highlightedTextColor = primaryTextColor
+      candidateTextColor = primaryTextColor
+      highlightedCandidateTextColor = primaryTextColor
+      candidateLabelColor = secondaryTextColor
+      highlightedCandidateLabelColor = secondaryTextColor
+      commentTextColor = secondaryTextColor
+      highlightedCommentTextColor = secondaryTextColor
     }
   }
 }
